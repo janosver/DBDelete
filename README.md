@@ -11,7 +11,7 @@ npm install
 ```
 3. Login to Dropbox and [create a new Dropbox API app](https://www.dropbox.com/developers/apps/create)
 4. In the app Settings [generate a new access token](https://www.dropbox.com/developers/reference/oauth-guide)
-5. Copy the token and in `DBDelete.js` replace DBDeleteToken's variable value 'token' with it
+5. Copy the token and in `DBDelete.js` replace the constant `DBDeleteToken` value 'token' with it
 6. Setup a crontab to run it every few hours
 
 
