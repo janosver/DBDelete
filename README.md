@@ -1,6 +1,6 @@
 # DBDelete
 
-DBDelete is a small application which can delete <x> hour old files from your Dropbox account. I have a security camera which uploads automatically the recordings. I created this utility to make sure my Dropbox account does not run out of space.
+DBDelete is a small application which can delete files which are older than 24 hours from your Dropbox account. I have a security camera which uploads automatically the recordings. I created this utility to make sure my Dropbox account does not run out of space.
 
 ## Installation
 
@@ -11,8 +11,9 @@ npm install
 ```
 3. Login to Dropbox and [create a new Dropbox API app](https://www.dropbox.com/developers/apps/create)
 4. In the app Settings [generate a new access token](https://www.dropbox.com/developers/reference/oauth-guide)
-5. Copy the token and in `DBDelete.js` replace the constant `DBDeleteToken` value 'token' with it
-6. Setup a crontab to run it every few hours
+5. Copy the token and in `DBDelete.js` replace the constant `DBDeleteToken` value 'token' with it.
+6. If you can keep more than 24 hours of recordings in your Dropbox, feel free to increase the `deleteAfterHours` constant to a value which suits your needs
+7. Setup a crontab to run it every few hours
 
 
 ## Usage
