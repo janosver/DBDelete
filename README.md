@@ -19,7 +19,7 @@ npm install
 
 If you setup crontab correctly it fires automatically, so just sit back and relax :)
 
-##Log
+## Log
 
 Each time the app runs it writes (appends to if it already exists) logs to `DBDelete.log`. If you don't want it to be created run the app with the -nolog parameter
 ```bash
