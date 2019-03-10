@@ -1,19 +1,26 @@
 # DBDelete
 
-DBDelete is a small application which can delete files which are older than 24 hours from your Dropbox account. I have a security camera which uploads automatically the recordings. I created this utility to make sure my Dropbox account does not run out of space.
+DBDelete is a small Node.js application which can delete files which are older than 24 hours from your Dropbox account. I have a security camera which uploads automatically the recordings to Dropbox. I created this utility to make sure my Dropbox account does not run out of space.
 
 ## Installation
 
-1. Download `DBDelete.js` and `package.json`
-2. Use the package manager [npm](https://www.npmjs.com/get-npm) to install the dependencies.
+1. To download the project execute
+```bash
+git clone
+```
+2. Go to DBDelete directory and use the package manager [npm](https://www.npmjs.com/get-npm) to install the dependencies.
 ```bash
 npm install
 ```
 3. Login to Dropbox and [create a new Dropbox API app](https://www.dropbox.com/developers/apps/create)
 4. In the app Settings [generate a new access token](https://www.dropbox.com/developers/reference/oauth-guide)
-5. Copy the token and in `DBDelete.js` replace the constant `DBDeleteToken` value 'token' with it.
-6. If you can keep more than 24 hours of recordings in your Dropbox, feel free to increase the `deleteAfterHours` constant to a value which suits your needs
-7. Setup a crontab to run it every few hours. I added it to my Raspberry Pi's crontab by executing
+5. Copy the token and create a configuration file named `.env` with the following values
+```dosini
+DROPBOX_TOKEN='paste your token here'
+DROPBOX_FOLDER_TO_CLEAN = '/ or /path to the folder in which you keep your files to delete'
+DELETE_AFTER_HOURS = 24 or a value that suits your needs
+```
+6. Setup a crontab to run it every few hours. I added it to my Raspberry Pi's crontab by executing
 ```bash
 crontab -e
 ```
@@ -25,9 +32,26 @@ This runs it every 4 hours and creates the log in the same folder.
 
 If you setup crontab correctly it fires automatically, so just sit back and relax :)
 
+Alternatively you can run it by executing
+```bash
+npm run drop24
+```
+
 ## Log
 
 Each time the app runs it writes (appends to if it already exists) logs to `DBDelete.log`. If you don't want it to be created run the app with the -nolog parameter
 ```bash
 node DBDelete -nolog
+```
+
+## Debug
+
+To run in debug mode which just prints messages in console rather than in a DBDelete.log file execute
+```bash
+npm run drop24debug
+```
+
+or
+```bash
+node DBDelete.js -debug
 ```

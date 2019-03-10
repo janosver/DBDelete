@@ -6,7 +6,7 @@ require('dotenv').config();
 var DBDeleteToken = process.env.DROPBOX_TOKEN;
 // The name of the folder (all lowercase) which contains the recordings
 var folderToClean = process.env.DROPBOX_FOLDER_TO_CLEAN;
-const deleteAfterHours = 24;
+var deleteAfterHours = process.env.DELETE_AFTER_HOURS;
 
 // ----------------
 
