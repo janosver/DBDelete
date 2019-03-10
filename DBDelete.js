@@ -1,10 +1,11 @@
 // ----------------
 // Configuration
 // ----------------
-// Access token generated on Dropbox's UI
-const DBDeleteToken = 'token';
+require('dotenv').config();
+
+var DBDeleteToken = process.env.DROPBOX_TOKEN;
 // The name of the folder (all lowercase) which contains the recordings
-const folderToClean = '/';
+var folderToClean = process.env.DROPBOX_FOLDER_TO_CLEAN;
 const deleteAfterHours = 24;
 
 // ----------------
@@ -16,10 +17,17 @@ var dbx = new Dropbox({ accessToken: DBDeleteToken , fetch: fetch });
 
 function log(message) {
     var args = process.argv.slice(2);
-    if (args[0]!='-nolog') {
-        fs.appendFileSync("DBDelete.log", message+"\n", function (err) {
-            if (err) throw err;
-          });        
+    switch (args[0]){
+        case '-nolog': 
+            break;
+        case '-debug':
+            console.log(message);
+            break;
+        default: 
+            fs.appendFileSync("DBDelete.log", message+"\n", function (err) {
+                if (err) throw err;
+            });        
+            break;
     }
 }
 

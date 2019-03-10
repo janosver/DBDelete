@@ -4,12 +4,15 @@
   "description": "DBDelete is a small application which can delete files which are older than 24 hours from your Dropbox account. I have a security camera which uploads automatically the recordings. I created this utility to make sure my Dropbox account does not run out of space.",
   "main": "DBDelete.js",
   "dependencies": {
+    "dotenv": "^6.2.0",
     "dropbox": "^4.0.16",
     "isomorphic-fetch": "^2.2.1"
   },
   "devDependencies": {},
   "scripts": {
+    "start": "node DBDelete.js",
     "drop24": "node DBDelete.js",
+    "drop24debug": "node DBDelete.js -debug",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
