@@ -1,0 +1,29 @@
+{
+  "name": "dbdelete",
+  "version": "1.0.0",
+  "description": "DBDelete is a small application which can delete files which are older than 24 hours from your Dropbox account. I have a security camera which uploads automatically the recordings. I created this utility to make sure my Dropbox account does not run out of space.",
+  "main": "DBDelete.js",
+  "dependencies": {
+    "dropbox": "^4.0.16",
+    "isomorphic-fetch": "^2.2.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/janosver/DBDelete.git"
+  },
+  "keywords": [
+    "dropbox",
+    "delete",
+    "automatic"
+  ],
+  "author": "Janos Ver (https://github.com/janosver)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/janosver/DBDelete/issues"
+  },
+  "homepage": "https://github.com/janosver/DBDelete#readme"
+}
