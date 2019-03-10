@@ -4,7 +4,7 @@ DBDelete is a small application which can delete files which are older than 24 h
 
 ## Installation
 
-1. Download `DBDelete.js` and `package-lock.json`
+1. Download `DBDelete.js` and `package.json`
 2. Use the package manager [npm](https://www.npmjs.com/get-npm) to install the dependencies.
 ```bash
 npm install
@@ -13,8 +13,13 @@ npm install
 4. In the app Settings [generate a new access token](https://www.dropbox.com/developers/reference/oauth-guide)
 5. Copy the token and in `DBDelete.js` replace the constant `DBDeleteToken` value 'token' with it.
 6. If you can keep more than 24 hours of recordings in your Dropbox, feel free to increase the `deleteAfterHours` constant to a value which suits your needs
-7. Setup a crontab to run it every few hours
-
+7. Setup a crontab to run it every few hours. I added it to my Raspberry Pi's crontab by executing
+```bash
+crontab -e
+```
+and then inserting the line and save the file. 
+`0 */4 * * * cd /home/myuser/DBDelete/ && node DBDelete.js`
+This runs it every 4 hours and creates the log in the same folder.
 
 ## Usage
 
