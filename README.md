@@ -4,23 +4,15 @@ DBDelete is a small Node.js application which can delete files which are older t
 
 ## Installation
 
-1. To download the project execute
-```bash
-git clone
-```
-2. Go to DBDelete directory and use the package manager [npm](https://www.npmjs.com/get-npm) to install the dependencies.
-```bash
-npm install
-```
-3. Login to Dropbox and [create a new Dropbox API app](https://www.dropbox.com/developers/apps/create)
-4. In the app Settings [generate a new access token](https://www.dropbox.com/developers/reference/oauth-guide)
-5. Copy the token and create a configuration file named `.env` with the following values
+1. Login to Dropbox and [create a new Dropbox API app](https://www.dropbox.com/developers/apps/create)
+2. In the app Settings [generate a new access token](https://www.dropbox.com/developers/reference/oauth-guide)
+3. Copy the token and create a configuration file named `.env` with the following values
 ```dosini
 DROPBOX_TOKEN='paste your token here'
 DROPBOX_FOLDER_TO_CLEAN = '/ or /path to the folder in which you keep your files to delete'
 DELETE_AFTER_HOURS = 24 or a value that suits your needs
 ```
-6. Setup a crontab to run it every few hours. I added it to my Raspberry Pi's crontab by executing
+4. Setup a crontab to run it every few hours. I added it to my Raspberry Pi's crontab by executing
 ```bash
 crontab -e
 ```

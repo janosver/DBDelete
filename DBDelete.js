@@ -3,9 +3,12 @@
 // ----------------
 require('dotenv').config();
 
+//Get the parameters from .env config file
+//First the real token
 var DBDeleteToken = process.env.DROPBOX_TOKEN;
 // The name of the folder (all lowercase) which contains the recordings
 var folderToClean = process.env.DROPBOX_FOLDER_TO_CLEAN;
+// After how many hours a recording can be deleted
 var deleteAfterHours = process.env.DELETE_AFTER_HOURS;
 
 // ----------------
@@ -36,18 +39,19 @@ function listFiles(pathToCrawl){
     var filesInFolder = [];    
     dbx.filesListFolder({path: pathToCrawl})
         .then(function(response) {
-            for (i=0; i<response.entries.length; i++) {
-                if (response.entries[i][".tag"]==="file") {
-                    var fileDate = new Date(response.entries[i].server_modified);
+            response.entries.forEach(function (entry) {
+                if (entry[".tag"]==="file") {
+                    var fileDate = new Date(entry.server_modified);
                     filesInFolder.push({
-                        path:response.entries[i].path_lower,
-                        serverModified:response.entries[i].server_modified,
+                        path:entry.path_lower,
+                        serverModified:entry.server_modified,
                         ageInHours:Math.round(Math.abs(now -fileDate)/3600000)
                     });
+                    
                 }
-            } 
+            });
             var filesToDelete = filesInFolder.filter(function(orig){
-            return orig.ageInHours>deleteAfterHours;
+                return orig.ageInHours>deleteAfterHours;
             });
             if (filesToDelete.length>0) {
                 log(
@@ -55,12 +59,12 @@ function listFiles(pathToCrawl){
                     " has "+filesToDelete.length +" files older than " + 
                     deleteAfterHours +" hours"
                 );
-                for (i=0; i<filesToDelete.length; i++){
+                filesToDelete.forEach(function (file) {
                     log(
-                        "Deleting file: " +filesToDelete[i].path + 
-                        " created at "+filesToDelete[i].serverModified
+                        "Deleting file: " +file.path + 
+                        " created at "+file.serverModified
                     );
-                    dbx.filesDeleteV2({path:filesToDelete[i].path})
+                    dbx.filesDeleteV2({path:file.path})
                     .then(function(response) {
                         return;
                     })
@@ -68,7 +72,7 @@ function listFiles(pathToCrawl){
                         log("Function: filesDeleteV2");
                         log(error);
                       });
-                }
+                });
             } else {
                 log("Folder: "+pathToCrawl+" has no files to delete.");
             }
@@ -80,7 +84,6 @@ function listFiles(pathToCrawl){
           });
 };
 
-
 var now = new Date();
 if (fs.existsSync("DBDelete.log")) {log("");}
 log("DropBox cleanup started:"+now);
@@ -88,14 +91,12 @@ log("Deleting files older than "+deleteAfterHours+" hours");
 
 dbx.filesListFolder({path: folderToClean})
   .then(function(response) {
-
-    var i;
-    for (i= 0; i< response.entries.length; i++) {
-        if (response.entries[i][".tag"]==="folder") {
-            log("Inspecting folder:"+ folderToClean+ "/"+response.entries[i].name);
+    response.entries.forEach(function (entry) {
+        if (entry[".tag"]==="folder") {
+            log("Inspecting folder:"+ folderToClean+ "/"+entry.name);
         }
-        listFiles(folderToClean+ "/"+response.entries[i].name);
-    }
+        listFiles(folderToClean+ "/"+entry.name);
+    });
   })
   .catch(function(error) {
     log("Function: main");
