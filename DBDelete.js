@@ -34,8 +34,40 @@ function log(message) {
     }
 }
 
+function filesInFolderAsync(pathToCheck){
+    return new Promise(function(resolve, reject) {
+        dbx.filesListFolder({path: pathToCheck})
+        .then(function(response) {
+            resolve(response.entries.length);
+        })
+        .catch(function(error) {
+            reject(error);
+        });
+    }); 
+}
 
-function listFiles(pathToCrawl){
+function checkAndDeleteFolders(folderToCheck){
+    filesCountInFolder=filesInFolderAsync(folderToCheck);
+    filesCountInFolder.then(function(result) {
+        if (result>0) {
+            checkAndDeleteFiles(folderToCheck);
+        } else {
+            log("Deleting empty folder: " +folderToCheck);
+            dbx.filesDeleteV2({path:folderToCheck})
+                .catch(function(error) {
+                    log("Error while deleting empty folder "+ folderToCheck);
+                    log(error);
+                  });
+        }
+    }, 
+    function(err) {
+        log("Error in function: checkAndDeleteFolders");
+        log("Can't get number of files in folder "+folderToCheck);
+    });
+}
+
+
+function checkAndDeleteFiles(pathToCrawl){
     var filesInFolder = [];    
     dbx.filesListFolder({path: pathToCrawl})
         .then(function(response) {
@@ -47,7 +79,8 @@ function listFiles(pathToCrawl){
                         serverModified:entry.server_modified,
                         ageInHours:Math.round(Math.abs(now -fileDate)/3600000)
                     });
-                    
+                } if (entry[".tag"]==="folder") {
+                    checkAndDeleteFolders(entry.path_lower);
                 }
             });
             var filesToDelete = filesInFolder.filter(function(orig){
@@ -69,7 +102,8 @@ function listFiles(pathToCrawl){
                         return;
                     })
                     .catch(function(error) {
-                        log("Function: filesDeleteV2");
+                        log("Error in function: listFiles->filesDeleteV2");
+                        log("file.path: "+file.path);
                         log(error);
                       });
                 });
@@ -79,7 +113,8 @@ function listFiles(pathToCrawl){
             
         })
         .catch(function(error) {
-            log("Function: listFiles");
+            log("Error in function: listFiles");
+            log("pathToCrawl: "+pathToCrawl);
             log(error);
           });
 };
@@ -93,13 +128,13 @@ dbx.filesListFolder({path: folderToClean})
   .then(function(response) {
     response.entries.forEach(function (entry) {
         if (entry[".tag"]==="folder") {
-            log("Inspecting folder:"+ folderToClean+ "/"+entry.name);
+            checkAndDeleteFolders(folderToClean+ "/"+entry.name);
+        } else { 
+            checkAndDeleteFiles(folderToClean);
         }
-        listFiles(folderToClean+ "/"+entry.name);
     });
   })
   .catch(function(error) {
-    log("Function: main");
+    log("Error in function: main");
     log(error);
   });
-
