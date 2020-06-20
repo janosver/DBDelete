@@ -19,15 +19,16 @@ var Dropbox = require('dropbox').Dropbox;
 var dbx = new Dropbox({ accessToken: DBDeleteToken , fetch: fetch });
 
 function log(message) {
+    var now = new Date();
     var args = process.argv.slice(2);
     switch (args[0]){
         case '-nolog': 
             break;
         case '-debug':
-            console.log(message);
+            console.log("["+now+"] "+message);
             break;
         default: 
-            fs.appendFileSync("DBDelete.log", message+"\n", function (err) {
+            fs.appendFileSync("DBDelete.log", "["+now+"] "+message+"\n", function (err) {
                 if (err) throw err;
             });        
             break;
@@ -47,51 +48,86 @@ function filesInFolderAsync(pathToCheck){
 }
 
 function checkAndDeleteFolders(folderToCheck){
-    filesCountInFolder=filesInFolderAsync(folderToCheck);
-    filesCountInFolder.then(function(result) {
-        if (result>0) {
-            checkAndDeleteFiles(folderToCheck);
-        } else {
-            log("Deleting empty folder: " +folderToCheck);
-            dbx.filesDeleteV2({path:folderToCheck})
-                .catch(function(error) {
-                    log("Error while deleting empty folder "+ folderToCheck);
-                    log(error);
-                  });
-        }
-    }, 
-    function(err) {
-        log("Error in function: checkAndDeleteFolders");
-        log("Can't get number of files in folder "+folderToCheck);
-    });
+    return new Promise(function(resolve, reject) {
+        filesCountInFolder=filesInFolderAsync(folderToCheck);
+        filesCountInFolder.then(function(result) {
+            if (result>0) {
+                checkAndDeleteFilesInFolder(folderToCheck);
+                resolve(0);
+            } else {
+                log("Deleting empty folder: " +folderToCheck);
+                dbx.filesDeleteV2({path:folderToCheck})
+                    .catch(function(error) {
+                        log("Error while deleting empty folder "+ folderToCheck);
+                        log(error);
+                    });
+                resolve(1);
+            }
+        }, 
+        function(error) {
+            log("Error in function: checkAndDeleteFolders");
+            log("Can't get number of files in folder "+folderToCheck);
+            log(error);
+            reject(error);
+        });
+    }); 
 }
 
+function checkAndDeleteFilesInFolder(pathToCrawl){
+    return new Promise(function(resolve, reject) {
+        dbx.filesListFolder({path: pathToCrawl})
+            .then(function(response) {
+                response.entries.forEach(function (entry) {
+                    if (entry[".tag"]==="file") {
+                        var filesDeleted = checkAndDeleteASingleFile(entry.path_lower);
+                        filesDeleted.then(function(response) {
+                            null;
+                        })
+                        .catch(function(error) {
+                            log("Error in function: checkAndDeleteFilesInFolder -> checkAndDeleteASingleFile: "+entry.path_lower);
+                            log(error);
+                        });
+                        
+                    } if ((entry[".tag"]==="folder") && (pathToCrawl!=entry.path_lower)) {
+                        var foldersDeleted = checkAndDeleteFolders(entry.path_lower);
+                        foldersDeleted.then(function(response) {
+                            null;
+                        })
+                        .catch(function(error) {
+                            log("Error in function: checkAndDeleteFilesInFolder -> checkAndDeleteFolders: "+entry.path_lower);
+                            log(error);
+                        });
+                    }
+                });
+                resolve(response.entries.length);
+            })
+            .catch(function(error) {
+                log("Error in function: listFiles");
+                log("pathToCrawl: "+pathToCrawl);
+                log(error);
+                reject(error);
+                });
+    });
+};
 
-function checkAndDeleteFiles(pathToCrawl){
-    var filesInFolder = [];    
-    dbx.filesListFolder({path: pathToCrawl})
+function checkAndDeleteASingleFile(filePath){
+    return new Promise(function(resolve, reject) {
+        dbx.filesGetMetadata({path: filePath})
         .then(function(response) {
-            response.entries.forEach(function (entry) {
-                if (entry[".tag"]==="file") {
-                    var fileDate = new Date(entry.server_modified);
-                    filesInFolder.push({
-                        path:entry.path_lower,
-                        serverModified:entry.server_modified,
-                        ageInHours:Math.round(Math.abs(now -fileDate)/3600000)
-                    });
-                } if (entry[".tag"]==="folder") {
-                    checkAndDeleteFolders(entry.path_lower);
+            var fileMetadata = [];  
+            if (response[".tag"]==="file") {
+                var now = new Date();
+                var fileDate = new Date(response.server_modified);
+                fileMetadata.push({
+                    path:response.path_lower,
+                    serverModified:response.server_modified,
+                    ageInHours:Math.round(Math.abs(now -fileDate)/3600000)
+                    }); 
                 }
-            });
-            var filesToDelete = filesInFolder.filter(function(orig){
-                return orig.ageInHours>deleteAfterHours;
-            });
+            var filesToDelete = fileMetadata.filter(function(orig){
+                    return orig.ageInHours>deleteAfterHours;
+                });
             if (filesToDelete.length>0) {
-                log(
-                    "Folder "+ pathToCrawl + 
-                    " has "+filesToDelete.length +" files older than " + 
-                    deleteAfterHours +" hours"
-                );
                 filesToDelete.forEach(function (file) {
                     log(
                         "Deleting file: " +file.path + 
@@ -102,39 +138,28 @@ function checkAndDeleteFiles(pathToCrawl){
                         return;
                     })
                     .catch(function(error) {
-                        log("Error in function: listFiles->filesDeleteV2");
+                        log("Error in function: checkAndDeleteASingleFile -> filesDeleteV2");
                         log("file.path: "+file.path);
                         log(error);
-                      });
+                        reject(error);
+                    });
                 });
-            } else {
-                log("Folder: "+pathToCrawl+" has no files to delete.");
             }
-            
+            resolve(filesToDelete.length);
         })
         .catch(function(error) {
-            log("Error in function: listFiles");
-            log("pathToCrawl: "+pathToCrawl);
+            log("Error in function: checkAndDeleteASingleFile -> filesGetMetadata");
+            log("filePath: "+filePath);
             log(error);
-          });
+            reject(error);
+        });
+    });
 };
 
-var now = new Date();
-if (fs.existsSync("DBDelete.log")) {log("");}
-log("DropBox cleanup started:"+now);
+function main(){
+log("DropBox cleanup started");
 log("Deleting files older than "+deleteAfterHours+" hours");
+checkAndDeleteFilesInFolder(folderToClean);
+}
 
-dbx.filesListFolder({path: folderToClean})
-  .then(function(response) {
-    response.entries.forEach(function (entry) {
-        if (entry[".tag"]==="folder") {
-            checkAndDeleteFolders(folderToClean+ "/"+entry.name);
-        } else { 
-            checkAndDeleteFiles(folderToClean);
-        }
-    });
-  })
-  .catch(function(error) {
-    log("Error in function: main");
-    log(error);
-  });
+main();
