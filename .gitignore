@@ -1,3 +1,4 @@
- node_modules/
- DBDelete.log
- .env
+node_modules/
+DBDelete.log
+.env
+a.txt
