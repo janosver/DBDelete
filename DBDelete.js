@@ -25,8 +25,8 @@ function sleep(millis) {
 
 function randomIntFromInterval(min, max) { // min and max included 
     return Math.floor(Math.random() * (max - min + 1) + min);
-  }
-  
+}
+
 
 function log(message) {
     var now = new Date();
@@ -90,7 +90,7 @@ function checkAndDeleteFilesInFolder(pathToCrawl) {
             .then(function (response) {
                 response.entries.forEach(function (entry) {
                     if (entry[".tag"] === "file") {
-                        sleep(randomIntFromInterval(2000,5000)).then(() => { 
+                        sleep(randomIntFromInterval(2000, 5000)).then(() => {
                             var filesDeleted = checkAndDeleteASingleFile(entry.path_lower);
                             filesDeleted
                                 .then(function (response) {
@@ -144,7 +144,7 @@ function checkAndDeleteASingleFile(filePath) {
                 });
                 if (filesToDelete.length > 0) {
                     filesToDelete.forEach(function (file) {
-                        sleep(randomIntFromInterval(2000,5000)).then(() => { 
+                        sleep(randomIntFromInterval(2000, 5000)).then(() => {
                             log(
                                 "Deleting file: " + file.path +
                                 " created at " + file.serverModified
